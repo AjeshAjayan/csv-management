@@ -35,6 +35,14 @@ export const signUpController = async (req, res) => {
         ));
     } catch (err) {
         console.error('Error while calling signUpController', err);
+        if(err?.errorResponse?.code === 11000) {
+            return res.status(400).json(generateResponseFormat(
+                'User already exists',
+                400,
+                'bad-request',
+                null,
+            ));
+        }
         res.status(500).json(
             generateResponseFormat(
                 'Something went wrong',
