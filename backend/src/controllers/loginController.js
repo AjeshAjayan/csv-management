@@ -35,7 +35,14 @@ export const loginController = (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ token });
+        res.status(200).json(
+            generateResponseFormat(
+                'Logged in successfully',
+                200,
+                'success',
+                { token },
+            )
+        );
     } catch (err) {
         console.error('Error while calling loginController', err);
         res.status(500).json(
