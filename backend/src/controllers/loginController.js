@@ -3,14 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { generateResponseFormat } from "../utils/generateResponseFormat.js";
 
-export const loginController = (req, res) => {
+export const loginController = async (req, res) => {
     try {
         const {
             email,
             password,
         } = req.body;
 
-        const user = User.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json(
                 generateResponseFormat(
@@ -22,27 +22,28 @@ export const loginController = (req, res) => {
             );
         }
 
-        const hashedPassword = bcrypt.hashSync(password, 10);
-        if (hashedPassword !== user.password) {
-            return res.status(400).json(
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(403).json(generateResponseFormat(
+                'Invalid credentials',
+                403,
+                'forbidden',
+                null,
+            ))
+        } else {
+            const token = jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            
+            res.status(200).json(
                 generateResponseFormat(
-                    'Invalid credentials',
-                    400,
-                    'bad-request',
-                    null,
+                    'Logged in successfully',
+                    200,
+                    'success',
+                    { token },
                 )
             );
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json(
-            generateResponseFormat(
-                'Logged in successfully',
-                200,
-                'success',
-                { token },
-            )
-        );
     } catch (err) {
         console.error('Error while calling loginController', err);
         res.status(500).json(

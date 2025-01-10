@@ -1,5 +1,8 @@
-export const verifyToken = (req, res, next) => {
-    const token = req.header('Authorization');
+import { generateResponseFormat } from "../utils/generateResponseFormat.js";
+import jwt from 'jsonwebtoken'; 
+
+export const verifyTokenMiddleware = (req, res, next) => {
+    const token = req.header('Authorization').replace('Bearer ', '');
     if (!token) {
         return res.status(401).json(
             generateResponseFormat(
