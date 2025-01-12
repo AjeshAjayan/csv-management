@@ -11,7 +11,6 @@ const authRouter = express.Router();
 authRouter.post(
     '/login', 
     validateEmailMiddleware,
-    validatePasswordMiddleware, 
     loginController
 );
 

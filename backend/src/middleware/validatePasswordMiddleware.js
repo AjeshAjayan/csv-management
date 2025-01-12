@@ -17,11 +17,7 @@ export const validatePasswordMiddleware = (req, res, next) => {
                 'Week password',
                 400,
                 'bad-request',
-                [
-                    'Password must have a Capitalized character',
-                    'must have a symbol character',
-                    'length must be greater than 8 characters',
-                ],
+                'Password must contain at least 8 characters, including an uppercase letter, a lowercase letter, a number, and a special character.',
             )
         );
     }

@@ -43,6 +43,7 @@ export const signUpController = async (req, res) => {
                 null,
             ));
         }
+        
         res.status(500).json(
             generateResponseFormat(
                 'Something went wrong',
