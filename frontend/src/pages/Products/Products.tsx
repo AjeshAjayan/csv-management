@@ -1,5 +1,6 @@
 import { Button, Card, Dropdown, Flex, Input, MenuProps, Pagination, Space } from "antd"
 import { DownOutlined } from '@ant-design/icons';
+import { useState } from "react";
 
 const items: MenuProps['items'] = [
     {
@@ -19,11 +20,25 @@ const items: MenuProps['items'] = [
     },
     {
         label: 'Price - Lowest to Highest',
-        key: '3',
+        key: '4',
+    },
+    {
+        type: 'divider',
+    },
+    {
+        label: 'Date - ASC',
+        key: '5',
+    },
+    {
+        label: 'Date - DESC',
+        key: '6',
     },
 ];
 
 export const ProductsPage = () => {
+
+    const [sort, setSort] = useState(items[6]);
+
     return (
         <Flex vertical justify="center" align="center" gap={24}>
             <Flex gap={12}>
@@ -32,7 +47,7 @@ export const ProductsPage = () => {
                 <Dropdown menu={{ items }} trigger={['click']}>
                     <a style={{ display: 'flex', alignItems: 'center' }} onClick={(e) => e.preventDefault()}>
                         <Space>
-                            Click me
+                            {(sort as any).label ?? 'sort'}
                             <DownOutlined />
                         </Space>
                     </a>

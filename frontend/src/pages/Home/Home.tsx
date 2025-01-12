@@ -4,7 +4,7 @@ import { formatCompactNumber } from "../../utils/formatCompactNumber"
 
 export const HomePage = () => {
     return (
-        <Flex style={{ paddingBottom: 168 }} vertical justify="start">
+        <Flex style={{ paddingBottom: 168, paddingLeft: '8rem', paddingRight: '8rem' }} vertical justify="start">
             <Flex gap={20} wrap>
                 <Card title="Total number of products" bordered={false} style={{ width: 300 }}>
                     <Title>{formatCompactNumber(1000000)}</Title>
