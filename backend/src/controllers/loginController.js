@@ -32,7 +32,7 @@ export const loginController = async (req, res) => {
                 null,
             ))
         } else {
-            const token = jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ user }, process.env.JWT_SECRET);
             
             res.status(200).json(
                 generateResponseFormat(

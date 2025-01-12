@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { connectToDatabase } from './src/utils/connectToDb.js';
 import authRouter from './src/routes/auth.js';
 import cors from 'cors';
+import csvRouter from './src/routes/csv.js';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors());
 connectToDatabase();
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/csv', csvRouter);
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
