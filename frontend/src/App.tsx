@@ -17,7 +17,7 @@ function App() {
 
   return (
     <Layout style={{ height: '100%' }}>
-      <Header>
+      <Header style={{ position: 'fixed', zIndex: 10, width: '100%' }}>
           <Menu
             theme="dark"
             mode="horizontal"
@@ -27,13 +27,13 @@ function App() {
                 label: <>{
                   localStorage.getItem('token') 
                     ? <Avatar size={36} icon={<UserOutlined />} /> 
-                    : <Link to="login">Log in</Link>
+                    : <Link to="/login">Log in</Link>
 
                 }</>,
               },
               {
                 key: '2',
-                label: <Link to="home">Home</Link>,
+                label: <Link to="/home">Home</Link>,
               },
               {
                 key: '3',
@@ -47,7 +47,7 @@ function App() {
           />
       </Header>
       <Content style={{ padding: '2rem', height: '100%' }}>
-        <div>
+        <div style={{ marginTop: '3.5rem' }}>
           <Outlet />
         </div>
       </Content>
