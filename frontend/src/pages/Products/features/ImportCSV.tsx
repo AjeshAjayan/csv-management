@@ -89,7 +89,7 @@ export const ImportCSV = () => {
     const handleUpload = () => {
         const formData = new FormData();
 
-        formData.append('files[]', file as FileType);
+        formData.append('file', file as FileType);
         setUploading(true);
 
         fetch('https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload', {
