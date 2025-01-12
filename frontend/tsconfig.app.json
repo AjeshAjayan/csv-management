@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/.tsx"]
+  "include": ["src", "src/.tsx", "public/workers"]
 }

@@ -1,6 +1,7 @@
-import { Button, Card, Dropdown, Flex, Input, MenuProps, Pagination, Space } from "antd"
+import { Card, Dropdown, Flex, Input, MenuProps, Pagination, Space } from "antd"
 import { DownOutlined } from '@ant-design/icons';
 import { useState } from "react";
+import { ImportCSV } from "./features/ImportCSV";
 
 const items: MenuProps['items'] = [
     {
@@ -37,22 +38,26 @@ const items: MenuProps['items'] = [
 
 export const ProductsPage = () => {
 
-    const [sort, setSort] = useState(items[6]);
+    const [sort] = useState(items[6]);
 
     return (
         <Flex vertical justify="center" align="center" gap={24}>
-            <Flex gap={12}>
-                <Button type="primary">Import</Button>
-                <Input style={{ width: 400 }} placeholder="Search by name or SKU" />
-                <Dropdown menu={{ items }} trigger={['click']}>
-                    <a style={{ display: 'flex', alignItems: 'center' }} onClick={(e) => e.preventDefault()}>
-                        <Space>
-                            {(sort as any).label ?? 'sort'}
-                            <DownOutlined />
-                        </Space>
-                    </a>
-                </Dropdown>
-            </Flex>
+            <div>
+                <Flex style={{ marginBottom: 12 }} gap={12}>
+                    <Input style={{ width: 400 }} placeholder="Search by name or SKU" />
+                    <Dropdown menu={{ items }} trigger={['click']}>
+                        <a style={{ display: 'flex', alignItems: 'center' }} onClick={(e) => e.preventDefault()}>
+                            <Space>
+                                {(sort as any).label ?? 'sort'}
+                                <DownOutlined />
+                            </Space>
+                        </a>
+                    </Dropdown>
+                </Flex>
+                <Flex gap={12}>
+                    <ImportCSV />
+                </Flex>
+            </div>
             <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
                 <Card title="Name" bordered={false} style={{ width: 300 }}>
                     <div>
