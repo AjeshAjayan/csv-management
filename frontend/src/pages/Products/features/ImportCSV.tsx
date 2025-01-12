@@ -7,6 +7,7 @@ type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 export const ImportCSV = () => {
     const [file, setFile] = useState<UploadFile | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [validating, setValidating] = useState(false);
     const [startUploadingConfirmation, setStartUploadingConfirmation] = useState(false);
     const [csvValidationConfirmation, setCSVValidationConfirmation] = useState(false);
 
@@ -17,6 +18,7 @@ export const ImportCSV = () => {
         
         worker.onmessage = (event: any) => {
             const { valid, errors } = event.data;
+            setValidating(false);
             if (valid) {
                 setStartUploadingConfirmation(true);
                 notification.success({
@@ -71,6 +73,11 @@ export const ImportCSV = () => {
 
         reader.onload = (e) => {
             const csvData = e.target?.result as string;
+            setValidating(true);
+            notification.info({
+                message: 'Validating... please wait...',
+                placement: 'topRight',
+            });
             createWorker((worker) => {
                 worker.postMessage(csvData);
             })
@@ -129,7 +136,9 @@ export const ImportCSV = () => {
     return (
         <>
             <Upload accept=".csv" multiple={false} {...uploadProps}>
-                <Button icon={<UploadOutlined />}>Import</Button>
+                <Button loading={validating} icon={<UploadOutlined />}>
+                    { validating ? 'Validating...' : 'Import' }
+                </Button>
             </Upload>
             <Button
                 type="primary"
