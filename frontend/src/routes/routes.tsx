@@ -3,6 +3,7 @@ import App from "../App";
 import { LoginPage } from "../pages/Login/Login";
 import { HomePage } from "../pages/Home/Home";
 import { SignUpPage } from "../pages/SignUp/SignUp";
+import { ProductsPage } from "../pages/Products/Products";
 
 export const router = createBrowserRouter([
     {
@@ -15,15 +16,19 @@ export const router = createBrowserRouter([
     },
     {
         path: "/",
+        element: <Navigate to="/login" replace />,
+    },
+    {
+        path: "/home",
         element: <App />,
         children: [
             {
-                path: "/",
-                element: <Navigate to="/home" replace />,
+                path: "",
+                element: <HomePage />,
             },
             {
-                path: "/home",
-                element: <HomePage />,
+                path: "products",
+                element: <ProductsPage />,
             },
             {
                 path: "*",

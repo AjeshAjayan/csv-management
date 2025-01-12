@@ -79,7 +79,7 @@ export const LoginPage = () => {
                     <Flex justify="center">
                         <Form.Item label={''}>
                             <Button loading={isLoading} type="primary" htmlType="submit">
-                                Submit
+                                Log in
                             </Button>
                         </Form.Item>
                     </Flex>

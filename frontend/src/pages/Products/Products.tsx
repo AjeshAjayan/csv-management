@@ -1,10 +1,14 @@
-import { Card, Flex, Pagination } from "antd"
+import { Button, Card, Flex, Input, Pagination } from "antd"
 
-export const HomePage = () => {
+export const ProductsPage = () => {
     return (
         <Flex vertical justify="center" align="center" gap={24}>
+            <Flex gap={12}>
+                <Button type="primary">Import</Button>
+                <Input style={{ width: 400 }} placeholder="Search by name or SKU" />
+            </Flex>
             <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
-                <Card title="Total number of products" bordered={false} style={{ width: 300 }}>
+                <Card title="Name" bordered={false} style={{ width: 300 }}>
                     <div>
                         <label>SKU: 123345</label>
                     </div>
