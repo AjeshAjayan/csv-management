@@ -4,6 +4,7 @@ const BATCH_SIZE = 1000;
 
 self.onmessage = (event) => {
     let rowCount = 0;
+    let valid = true;
 
     try {
         Papa.parse(event.data, {
@@ -12,7 +13,6 @@ self.onmessage = (event) => {
             step: (row) => {
                 rowCount++;
                 const errors = [];
-                let valid = true;
 
                 if(!row?.data?.productName) {
                     valid = false;
@@ -54,7 +54,7 @@ self.onmessage = (event) => {
             complete: () => {
                 console.log('Complete');
                 self.postMessage({
-                    valid: true,
+                    valid,
                     errors: []
                 })
             },

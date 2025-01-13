@@ -4,6 +4,7 @@ import { formatCompactNumber } from "../../utils/formatCompactNumber"
 import { useEffect, useState } from "react"
 import { dashboardInsightAPI } from "../../api/dashboardInsightAPI"
 import { Product } from "../../models/Products"
+import { Link } from "react-router-dom"
 
 export const HomePage = () => {
 
@@ -47,7 +48,9 @@ export const HomePage = () => {
                             </Card>
                             <Card title="" bordered={false} style={{ width: 300 }}>
                                 <Flex style={{ height: '13rem' }} justify="center" align="center">
-                                    <Button type="primary">All products</Button>
+                                    <Link to={'/home/products'}>
+                                        <Button type="primary">All products</Button>
+                                    </Link>
                                 </Flex>
                             </Card>
                         </Flex>

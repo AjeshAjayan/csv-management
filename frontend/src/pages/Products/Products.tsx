@@ -75,7 +75,7 @@ export const ProductsPage = () => {
                     });
                 } else if (status.data.uploadStatus === 'failed') {
                     notification.error({
-                        message: `Failed to upload products`,
+                        message: `Last uploading attempt was a failure, please try again`,
                         placement: 'topRight',
                     })
                     clearInterval(clearIntervalRef.current);
@@ -85,6 +85,7 @@ export const ProductsPage = () => {
                         message: `Products uploaded successfully`,
                         placement: 'topRight',
                     })
+                    fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
                     clearInterval(clearIntervalRef.current);
                     clearIntervalRef.current = null;
                 } else {

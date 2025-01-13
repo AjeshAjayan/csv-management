@@ -7,20 +7,22 @@ services:
     ports:
       - "80:80"  # Maps port 80 in the container to port 80 on the host
     depends_on:
-      - backend  # Ensures the backend is started first (if needed)
+      - backend  # Ensures the backend is started first
 
   backend:
     build:
       context: ./backend  # Path to the backend Dockerfile
     ports:
-      - "3000:3000"  # Maps port 3000 in the container to port 5000 on the host
+      - "3000:3000"  # Maps port 3000 in the container to port 3000 on the host
     environment:
-      - MONGO_URI=mongodb://mongo:27017/mt-products  # Example MongoDB URI (modify as needed)
+      - MONGO_URI=mongodb://mongo:27017/mt-products  # Example MongoDB URI
     depends_on:
       - mongo  # Ensures MongoDB is started first
+    networks:
+      - backend
 
   mongo:
-    image: mongo:latest  # Use the official MongoDB image
+    image: mongo:6.0  # Use a specific MongoDB version
     command: ["mongod", "--replSet", "rs0"]  # Start MongoDB with replica set enabled
     ports:
       - "27017:27017"  # Expose MongoDB port
@@ -30,13 +32,16 @@ services:
       - backend
 
   mongo-init:
-    image: mongo:latest
-    command: "bash -c 'sleep 10 && mongo --host mongo --eval \"rs.initiate()\"'"  # Waits for MongoDB to start, then initializes the replica set
+    image: mongo:6.0  # Use the same MongoDB version for consistency
+    entrypoint: >
+      bash -c "sleep 20 &&
+      mongosh --host mongo --eval 'rs.initiate()'"
     depends_on:
       - mongo
     networks:
       - backend
-    restart: "no"  # This container is only needed for initialization
+    restart: "no"
+
 
 volumes:
   mongo-data:  # Define a volume to store MongoDB data persistently

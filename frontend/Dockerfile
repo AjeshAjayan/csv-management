@@ -18,6 +18,7 @@ WORKDIR /usr/share/nginx/html
 
 # Copy built React app from the build stage
 COPY --from=build /app/dist .
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose the default Nginx HTTP port
 EXPOSE 80
