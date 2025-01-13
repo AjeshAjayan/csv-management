@@ -1,9 +1,10 @@
 import { Card, Dropdown, Flex, Input, MenuProps, Pagination, Space, Spin, notification } from "antd"
 import { DownOutlined } from '@ant-design/icons';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImportCSV } from "./features/ImportCSV";
 import { getProducts } from "../../api/getProducts";
 import { ProductsResponse } from "../../models/ProductsResponse";
+import { getUploadStatusAPI } from "../../api/getUploadStatusAPI";
 
 const items: MenuProps['items'] = [
     {
@@ -51,10 +52,48 @@ export const ProductsPage = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useState('');
+    const clearIntervalRef = useRef<any>(null);
 
     useEffect(() => {
         fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
+
+        startPolling();
+
+        return () => {
+            clearInterval(clearIntervalRef.current);
+            clearIntervalRef.current = null;
+        }
     }, [])
+
+    const startPolling = () => {
+        clearIntervalRef.current = setInterval(() => {
+            getUploadStatusAPI().then((status) => {
+                if (status.data.parsingInProgress) {
+                    notification.warning({
+                        message: `Products are still being uploaded`,
+                        placement: 'topRight',
+                    });
+                } else if (status.data.uploadStatus === 'failed') {
+                    notification.error({
+                        message: `Failed to upload products`,
+                        placement: 'topRight',
+                    })
+                    clearInterval(clearIntervalRef.current);
+                    clearIntervalRef.current = null;
+                } else if (status.data.uploadStatus === 'completed') {
+                    notification.success({
+                        message: `Products uploaded successfully`,
+                        placement: 'topRight',
+                    })
+                    clearInterval(clearIntervalRef.current);
+                    clearIntervalRef.current = null;
+                } else {
+                    clearInterval(clearIntervalRef.current);
+                    clearIntervalRef.current = null;
+                }
+            })
+        }, 3000);
+    }
 
     const fetchProducts = ({
         limitArg,
@@ -82,20 +121,23 @@ export const ProductsPage = () => {
             });
     }
 
-    
+
     const handlePaginationOnChange = (value: number, pageSizeValue: number) => {
         setLimit(value);
         setPage(pageSizeValue);
         fetchProducts({ limitArg: pageSizeValue, pageArg: value, sortArg: null, searchArg: null });
     };
-    
+
     const handleSortOnClick = (item: any) => {
         setSort(items.find(i => i?.key === item.key) as any);
         fetchProducts({ limitArg: null, pageArg: null, sortArg: item.key, searchArg: null });
     }
-    
+
     const handleAfterUploadingFinished = () => {
         fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
+        if(clearIntervalRef.current === null) {
+            startPolling();
+        }
     }
 
     const handleSearch = (event: any) => {
@@ -107,7 +149,7 @@ export const ProductsPage = () => {
         <Flex style={{ paddingBottom: 100 }} vertical justify="center" align="center" gap={24}>
             <div>
                 <Flex style={{ marginBottom: 12 }} gap={12}>
-                    <Input style={{ width: 400 }} 
+                    <Input style={{ width: 400 }}
                         placeholder="Search by name or SKU"
                         onKeyUp={handleSearch}
                     />

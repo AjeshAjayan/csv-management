@@ -100,8 +100,8 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
         uploadAPI(formData)
             .then(() => {
                 setFile(null);
-                notification.success({
-                    message: 'File uploaded successfully',
+                notification.warning({
+                    message: 'File is being processed...',
                     placement: 'topRight',
                 });
                 afterUploadingFinished();

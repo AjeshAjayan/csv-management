@@ -23,6 +23,19 @@ const BATCH_SIZE = 1000;
         let totalPrice = 0;
         let rows = [];
 
+        /**
+         * processing of CSV file is handled as a background task
+         * so, keep status in a document, and is not part of the transaction
+         */
+        await ProductMetrics.findOneAndUpdate(
+            { _id: "root" },
+            {
+                parsingInProgress: true,
+                uploadStatus: 'pending',
+            },
+            { upsert: true, new: true }
+        );
+
 
         process.stdin.on("data", (chunk) => {
             console.log('chunk', chunk);
@@ -65,6 +78,14 @@ const BATCH_SIZE = 1000;
                         }
                     } catch (err) {
                         console.error("Error processing row:", err.message);
+                        await ProductMetrics.findOneAndUpdate(
+                            { _id: "root" },
+                            {
+                                parsingInProgress: false,
+                                uploadStatus: 'failed',
+                            },
+                            { upsert: true, new: true }
+                        );
                         await session.abortTransaction();
                         process.exit(1);
                     }
@@ -84,6 +105,8 @@ const BATCH_SIZE = 1000;
                                     totalNumberOfProducts: rowCount,
                                     totalWorthOfProduct: totalPrice
                                 },
+                                parsingInProgress: false,
+                                uploadStatus: 'completed',
                             },
                             { upsert: true, session, new: true }
                         );
@@ -93,6 +116,14 @@ const BATCH_SIZE = 1000;
                         console.log("Transaction committed.");
                     } catch (err) {
                         console.error("Error during final processing:", err.message);
+                        await ProductMetrics.findOneAndUpdate(
+                            { _id: "root" },
+                            {
+                                parsingInProgress: false,
+                                uploadStatus: 'failed',
+                            },
+                            { upsert: true, new: true }
+                        );
                         await session.abortTransaction();
                         process.exit(1);
                     } finally {
@@ -103,6 +134,14 @@ const BATCH_SIZE = 1000;
                 },
                 error: async (err) => {
                     console.error("Parsing error:", err.message);
+                    await ProductMetrics.findOneAndUpdate(
+                        { _id: "root" },
+                        {
+                            parsingInProgress: false,
+                            uploadStatus: 'failed',
+                        },
+                        { upsert: true, session, new: true }
+                    );
                     await session.abortTransaction();
                     process.exit(1);
                 },
@@ -110,6 +149,14 @@ const BATCH_SIZE = 1000;
         });
     } catch (err) {
         console.error("Error initializing worker:", err.message);
+        await ProductMetrics.findOneAndUpdate(
+            { _id: "root" },
+            {
+                parsingInProgress: false,
+                uploadStatus: 'failed',
+            },
+            { upsert: true, session, new: true }
+        );
         process.exit(1);
     }
 })();
