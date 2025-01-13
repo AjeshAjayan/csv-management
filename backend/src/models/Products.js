@@ -10,5 +10,6 @@ const ProductsSchema = new mongoose.Schema({
 
 ProductsSchema.clearIndexes({ price: 1 }, { background: true });
 ProductsSchema.clearIndexes({ createdAt: 1 }, { background: true });
+ProductsSchema.clearIndexes({ productName: 1 }, { background: true });
 
 export const Products = mongoose.model('Products', ProductsSchema);

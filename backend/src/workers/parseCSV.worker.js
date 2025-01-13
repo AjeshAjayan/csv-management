@@ -25,6 +25,7 @@ const BATCH_SIZE = 1000;
 
 
         process.stdin.on("data", (chunk) => {
+            console.log('chunk', chunk);
             Papa.parse(chunk.toString(), {
                 header: true,
                 skipEmptyLines: true,
@@ -76,14 +77,17 @@ const BATCH_SIZE = 1000;
                         }
 
                         // insert total number of rows and total worth of product;
-                        await ProductMetrics.findOneAndUpdate(
+                        const res = await ProductMetrics.findOneAndUpdate(
                             { _id: "root" },
                             {
-                                totalNumberOfProducts: rowCount,
-                                totalWorthOfProduct: totalPrice,
+                                $inc: { 
+                                    totalNumberOfProducts: rowCount,
+                                    totalWorthOfProduct: totalPrice
+                                },
                             },
-                            { upsert: true, session }
+                            { upsert: true, session, new: true }
                         );
+                        console.log("Total rows inserted:", res.totalNumberOfProducts);
 
                         await session.commitTransaction();
                         console.log("Transaction committed.");

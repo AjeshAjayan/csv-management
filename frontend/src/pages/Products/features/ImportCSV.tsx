@@ -1,10 +1,15 @@
 import { UploadFile, UploadProps, notification, Upload, Button, GetProp, Modal } from "antd";
 import { useMemo, useState } from "react";
 import { UploadOutlined } from '@ant-design/icons';
+import { uploadAPI } from "../../../api/uploadAPI";
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
-export const ImportCSV = () => {
+type ImportCSVProps = {
+    afterUploadingFinished: () => void
+}
+
+export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
     const [file, setFile] = useState<UploadFile | null>(null);
     const [uploading, setUploading] = useState(false);
     const [validating, setValidating] = useState(false);
@@ -92,17 +97,22 @@ export const ImportCSV = () => {
         formData.append('file', file as FileType);
         setUploading(true);
 
-        fetch('https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload', {
-            method: 'POST',
-            body: formData,
-        })
-            .then((res) => res.json())
+        uploadAPI(formData)
             .then(() => {
                 setFile(null);
-                console.log('upload successfully.');
+                notification.success({
+                    message: 'File uploaded successfully',
+                    placement: 'topRight',
+                });
+                afterUploadingFinished();
             })
             .catch(() => {
+                setFile(null);
                 console.error('upload failed.');
+                notification.error({
+                    message: 'Filed to upload',
+                    placement: 'topRight',
+                });
             })
             .finally(() => {
                 setUploading(false);
@@ -137,16 +147,13 @@ export const ImportCSV = () => {
         <>
             <Upload accept=".csv" multiple={false} {...uploadProps}>
                 <Button loading={validating} icon={<UploadOutlined />}>
-                    { validating ? 'Validating...' : 'Import' }
+                    { validating || uploading 
+                        ? uploading 
+                            ? 'Uploading...'
+                            : 'Validating...'
+                        : 'Import' }
                 </Button>
             </Upload>
-            <Button
-                type="primary"
-                onClick={handleUpload}
-                disabled={file === null}
-            >
-                {uploading ? 'Uploading' : 'Start Upload'}
-            </Button>
 
             <Modal title="Start validating the file?"
                 open={csvValidationConfirmation}

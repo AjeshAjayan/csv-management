@@ -10,8 +10,6 @@ export const connectToDatabase = async () => {
     }
 }
 
-mongoose.set('debug', true)
-
 mongoose.connection.on('connected', () => {
     console.log('Mongoose connected to MongoDB');
 });

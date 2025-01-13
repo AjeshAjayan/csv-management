@@ -1,51 +1,117 @@
-import { Card, Dropdown, Flex, Input, MenuProps, Pagination, Space } from "antd"
+import { Card, Dropdown, Flex, Input, MenuProps, Pagination, Space, Spin, notification } from "antd"
 import { DownOutlined } from '@ant-design/icons';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ImportCSV } from "./features/ImportCSV";
+import { getProducts } from "../../api/getProducts";
+import { ProductsResponse } from "../../models/ProductsResponse";
 
 const items: MenuProps['items'] = [
     {
         label: 'Alphabetical - ASC',
-        key: '1',
+        key: 'productName',
     },
     {
         label: 'Alphabetical - DESC',
-        key: '2',
+        key: '-productName',
     },
     {
         type: 'divider',
     },
     {
         label: 'Price - Highest to Lowest',
-        key: '3',
+        key: '-price',
     },
     {
         label: 'Price - Lowest to Highest',
-        key: '4',
+        key: 'price',
     },
     {
         type: 'divider',
     },
     {
         label: 'Date - ASC',
-        key: '5',
+        key: 'createdAt',
     },
     {
         label: 'Date - DESC',
-        key: '6',
+        key: '-createdAt',
     },
 ];
 
+const DEFAULT_PAGE_SIZE = 10;
+
 export const ProductsPage = () => {
 
-    const [sort] = useState(items[6]);
+    const [sort, setSort] = useState(items[6]);
+    const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+    const [page, setPage] = useState(1);
+    const [productsRes, setProductsRes] = useState<ProductsResponse>({
+        products: [],
+        total: 0,
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [search, setSearch] = useState('');
+
+    useEffect(() => {
+        fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
+    }, [])
+
+    const fetchProducts = ({
+        limitArg,
+        pageArg,
+        sortArg,
+        searchArg,
+    }: {
+        limitArg: null | number,
+        pageArg: null | number,
+        sortArg: null | string,
+        searchArg: null | string,
+    }) => {
+        setIsLoading(true);
+        getProducts(limitArg || limit, pageArg || page, sortArg || sort?.key as any, searchArg || search)
+            .then(res => {
+                setProductsRes(res.data);
+            }).catch(err => {
+                console.error(err);
+                notification.error({
+                    message: `Error fetching products`,
+                    placement: 'topRight',
+                })
+            }).finally(() => {
+                setIsLoading(false);
+            });
+    }
+
+    
+    const handlePaginationOnChange = (value: number, pageSizeValue: number) => {
+        setLimit(value);
+        setPage(pageSizeValue);
+        fetchProducts({ limitArg: pageSizeValue, pageArg: value, sortArg: null, searchArg: null });
+    };
+    
+    const handleSortOnClick = (item: any) => {
+        setSort(items.find(i => i?.key === item.key) as any);
+        fetchProducts({ limitArg: null, pageArg: null, sortArg: item.key, searchArg: null });
+    }
+    
+    const handleAfterUploadingFinished = () => {
+        fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
+    }
+
+    const handleSearch = (event: any) => {
+        setSearch(event.target.value);
+        fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: event.target.value });
+    }
 
     return (
-        <Flex vertical justify="center" align="center" gap={24}>
+        <Flex style={{ paddingBottom: 100 }} vertical justify="center" align="center" gap={24}>
             <div>
                 <Flex style={{ marginBottom: 12 }} gap={12}>
-                    <Input style={{ width: 400 }} placeholder="Search by name or SKU" />
-                    <Dropdown menu={{ items }} trigger={['click']}>
+                    <Input style={{ width: 400 }} 
+                        placeholder="Search by name or SKU"
+                        onKeyUp={handleSearch}
+                    />
+                    <Dropdown menu={{ items, onClick: handleSortOnClick }} trigger={['click']}>
                         <a style={{ display: 'flex', alignItems: 'center' }} onClick={(e) => e.preventDefault()}>
                             <Space>
                                 {(sort as any).label ?? 'sort'}
@@ -55,80 +121,35 @@ export const ProductsPage = () => {
                     </Dropdown>
                 </Flex>
                 <Flex gap={12}>
-                    <ImportCSV />
+                    <ImportCSV afterUploadingFinished={handleAfterUploadingFinished} />
                 </Flex>
             </div>
-            <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-                <Card title="Name" bordered={false} style={{ width: 300 }}>
-                    <div>
-                        <label>SKU: 123345</label>
-                    </div>
-                    <div>
-                        <label>Price: 100</label>
-                    </div>
-                    <p style={{ margin: 0 }}>description</p>
-                </Card>
-            </Flex>
+            {
+                isLoading
+                    ? <Flex justify="">
+                        <Spin />
+                    </Flex>
+                    : <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
+                        {
+                            productsRes.products.map(product => (
+                                <Card key={product._id} title={product.productName} bordered={false} style={{ width: 300 }}>
+                                    <div>
+                                        <label>SKU: {product.SKU}</label>
+                                    </div>
+                                    <div>
+                                        <label>Price: {product.price}</label>
+                                    </div>
+                                    <p style={{ margin: 0 }}>{product.description}</p>
+                                </Card>
+                            ))
+                        }
+                    </Flex>
+            }
             <Pagination defaultCurrent={1}
-                total={50}
+                total={productsRes.total}
                 showSizeChanger
-                onShowSizeChange={() => { }}
-                defaultPageSize={20}
-                onChange={() => { }}
+                defaultPageSize={DEFAULT_PAGE_SIZE}
+                onChange={handlePaginationOnChange}
             />
         </Flex>
     )
