@@ -1,94 +1,111 @@
 import mongoose from "mongoose";
 import Papa from "papaparse";
 import { ProductMetrics } from "../models/ProductsMetrices.js";
+import { connectToDatabase } from "../utils/connectToDb.js";
 import { Products } from "../models/Products.js";
+
 const BATCH_SIZE = 1000;
 
 (async () => {
     try {
+        await connectToDatabase();
+
+        /**
+         * insertMany is used to insert the products. Total product is split into
+         * {BATCH_SIZE} and each batch is inserted separately
+         * 
+         * Transaction used used to handle rollback of any batch fails
+         */
+        const session = await mongoose.startSession();
+        await session.startTransaction();
 
         let rowCount = 0;
         let totalPrice = 0;
         let rows = [];
 
-        /**
-        * use transaction to handle bulk insertion
-        * insertion is handled tp small chunk to prevent memory issues
-        * startTransaction can be used to perform rollback, in case of error
-        */
-        const session = await mongoose.startSession();
-        session.startTransaction();
 
-        Papa.parse(process.stdin, {
-            header: true,
-            skipEmptyLines: true,
-            step: async (row) => {
-                console.log(row);
-                /**
-                 * validate if data exist
-                */
-                if (!row?.data?.productName || !row?.data?.SKU || !row?.data?.price || !row?.data?.description) {
-                    console.error(`Missing required fields at row ${rowCount}`);
-                    await session.abortTransaction();
-                    process.exit(1);
-                }
+        process.stdin.on("data", (chunk) => {
+            Papa.parse(chunk.toString(), {
+                header: true,
+                skipEmptyLines: true,
+                step: async (row) => {
+                    try {
 
-                /**
-                 * keeps track of row count and price to save to ProductMetrics collection
-                 * saving to separate collection to overcome performance issues when fetching
-                 * count from product collection
-                */
-                rowCount++;
-                totalPrice += (row?.data?.price ?? 0);
+                        /**
+                         * validate, if any data is missing
+                         * 
+                         * validate is done in FE as well
+                         */
+                        const data = row.data;
+                        if (!data.productName || !data.SKU || !data.price || !data.description) {
+                            throw new Error(`Missing required fields at row ${rowCount}`);
+                        }
 
-                // batch insert by chunks to improve performance and scalability
-                rows.push(row.data);
-                if (rowCount % BATCH_SIZE === 0) {
-                    Products.insertMany(rows, { session });
-                    rows = [];
-                }
-            },
-            complete: async () => {
-                try {
-                    console.log("Parsing complete.");
-                    // write row count
-                    // write total price
-                    const count = await ProductMetrics.countDocuments();
-                    if (count >= 1) {
-                        const updatedRoot = await Root.findOneAndUpdate(
+                        /**
+                         * total number of rows and total worth of product is kept separately.
+                         * So that it can be fetched efficiently. especially when product collection
+                         * have millions of records 
+                         */
+                        rowCount++;
+                        totalPrice += parseFloat(data.price) || 0;
+
+                        // Add to batch
+                        rows.push({
+                            productName: data.productName,
+                            SKU: data.SKU,
+                            price: parseFloat(data.price),
+                            description: data.description,
+                        });
+
+                        // batch insertion
+                        if (rows.length >= BATCH_SIZE) {
+                            await Products.insertMany(rows, { session });
+                            rows = [];
+                        }
+                    } catch (err) {
+                        console.error("Error processing row:", err.message);
+                        await session.abortTransaction();
+                        process.exit(1);
+                    }
+                },
+                complete: async () => {
+                    try {
+                        // Insert remaining rows in batch
+                        if (rows.length > 0) {
+                            await Products.insertMany(rows, { session });
+                        }
+
+                        // insert total number of rows and total worth of product;
+                        await ProductMetrics.findOneAndUpdate(
                             { _id: "root" },
                             {
-                                $set: {
-                                    totalNumberOfProducts: rowCount,
-                                    totalWorthOfProduct: totalPrice,
-                                },
-                            },
-                            { new: true }
-                        );
-                    } else {
-                        await ProductMetrics.create(
-                            {
                                 totalNumberOfProducts: rowCount,
-                                totalWorthOfProduct: totalPrice
+                                totalWorthOfProduct: totalPrice,
                             },
-                            { session }
+                            { upsert: true, session }
                         );
+
+                        await session.commitTransaction();
+                        console.log("Transaction committed.");
+                    } catch (err) {
+                        console.error("Error during final processing:", err.message);
+                        await session.abortTransaction();
+                        process.exit(1);
+                    } finally {
+                        session.endSession();
+                        mongoose.disconnect();
+                        process.exit(0);
                     }
-                    session.endSession();
-                    process.exit(0);
-                } catch (err) {
+                },
+                error: async (err) => {
+                    console.error("Parsing error:", err.message);
                     await session.abortTransaction();
                     process.exit(1);
-                }
-            },
-            error: async (err) => {
-                console.error("Error during parsing:", err);
-                await session.abortTransaction();
-                process.exit(1);
-            },
+                },
+            });
         });
     } catch (err) {
-        console.error("Error starting worker:", err);
+        console.error("Error initializing worker:", err.message);
         process.exit(1);
     }
-})()
+})();

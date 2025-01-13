@@ -21,8 +21,26 @@ services:
 
   mongo:
     image: mongo:latest  # Use the official MongoDB image
+    command: ["mongod", "--replSet", "rs0"]  # Start MongoDB with replica set enabled
+    ports:
+      - "27017:27017"  # Expose MongoDB port
     volumes:
       - mongo-data:/data/db  # Persist MongoDB data
+    networks:
+      - backend
+
+  mongo-init:
+    image: mongo:latest
+    command: "bash -c 'sleep 10 && mongo --host mongo --eval \"rs.initiate()\"'"  # Waits for MongoDB to start, then initializes the replica set
+    depends_on:
+      - mongo
+    networks:
+      - backend
+    restart: "no"  # This container is only needed for initialization
 
 volumes:
   mongo-data:  # Define a volume to store MongoDB data persistently
+
+networks:
+  backend:
+    driver: bridge
