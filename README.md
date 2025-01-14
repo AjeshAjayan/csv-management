@@ -37,7 +37,7 @@ note: wait for 3-4 minitues for all the serives to be up and running.
 
 ## Screenshots
 
-![App Screenshot](./screenshots/Screenshot from 2025-01-14 18-47-46.png)
+![App Screenshot](./screenshots/Screenshot1.png)
 ![App Screenshot](./screenshots/Screenshot from 2025-01-14 18-50-55.png)
 ![App Screenshot](./screenshots/Screenshot from 2025-01-14 18-51-20.png)
 ![App Screenshot](./screenshots/Screenshot from 2025-01-14 18-51-40.png)
