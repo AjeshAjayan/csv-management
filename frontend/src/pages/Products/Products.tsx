@@ -53,6 +53,7 @@ export const ProductsPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [search, setSearch] = useState('');
     const clearIntervalRef = useRef<any>(null);
+    const clearTimeOutOfDebounce = useRef<any>(null);
 
     useEffect(() => {
         fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
@@ -71,13 +72,13 @@ export const ProductsPage = () => {
                 if (status.data.parsingInProgress) {
                     notification.destroy()
                     notification.warning({
-                        message: `Products are still being uploaded`,
+                        message: `Products are still being processed`,
                         placement: 'topRight',
                     });
                 } else if (status.data.uploadStatus === 'failed') {
                     notification.destroy()
                     notification.error({
-                        message: `Last uploading attempt was a failure, please try again`,
+                        message: `Last parsing attempt was a failure, please try again`,
                         placement: 'topRight',
                     })
                     clearInterval(clearIntervalRef.current);
@@ -111,18 +112,22 @@ export const ProductsPage = () => {
         searchArg: null | string,
     }) => {
         setIsLoading(true);
-        getProducts(limitArg || limit, pageArg || page, sortArg || sort?.key as any, searchArg || search)
-            .then(res => {
-                setProductsRes(res.data);
-            }).catch(err => {
-                console.error(err);
-                notification.error({
-                    message: `Error fetching products`,
-                    placement: 'topRight',
-                })
-            }).finally(() => {
-                setIsLoading(false);
-            });
+        getProducts(
+            limitArg || limit,
+            pageArg || page,
+            sortArg || sort?.key as any,
+            searchArg === null ? search : searchArg
+        ).then(res => {
+            setProductsRes(res.data);
+        }).catch(err => {
+            console.error(err);
+            notification.error({
+                message: `Error fetching products`,
+                placement: 'topRight',
+            })
+        }).finally(() => {
+            setIsLoading(false);
+        });
     }
 
 
@@ -145,7 +150,17 @@ export const ProductsPage = () => {
 
     const handleSearch = (event: any) => {
         setSearch(event.target.value);
-        fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: event.target.value });
+
+        /**
+         * simple implementation of debouncing; 
+         */
+        if (clearTimeOutOfDebounce.current) {
+            clearTimeout(clearTimeOutOfDebounce.current);
+        }
+
+        clearTimeOutOfDebounce.current = setTimeout(() => {
+            fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: event.target.value });
+        }, 500)
     }
 
     return (
