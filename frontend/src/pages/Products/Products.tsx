@@ -5,6 +5,7 @@ import { ImportCSV } from "./features/ImportCSV";
 import { getProducts } from "../../api/getProducts";
 import { ProductsResponse } from "../../models/ProductsResponse";
 import { getUploadStatusAPI } from "../../api/getUploadStatusAPI";
+import { calculateTimeAgo } from "../../utils/calculateTImeAgo";
 
 const items: MenuProps['items'] = [
     {
@@ -43,7 +44,7 @@ const DEFAULT_PAGE_SIZE = 10;
 
 export const ProductsPage = () => {
 
-    const [sort, setSort] = useState(items[6]);
+    const [sort, setSort] = useState(items[7]);
     const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
     const [page, setPage] = useState(1);
     const [productsRes, setProductsRes] = useState<ProductsResponse>({
@@ -204,6 +205,9 @@ export const ProductsPage = () => {
                                                     <label>Price: {product.price}</label>
                                                 </div>
                                                 <p style={{ margin: 0 }}>{product.description}</p>
+                                                <div style={{ marginTop: 8 }}>
+                                                    <strong>{calculateTimeAgo(product.createdAt)}</strong>
+                                                </div>
                                             </Card>
                                         ))
                                     }
