@@ -26,6 +26,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
             setValidating(false);
             if (valid) {
                 setStartUploadingConfirmation(true);
+                notification.destroy()
                 notification.success({
                     message: 'Validated successfully',
                     placement: 'topRight',
@@ -36,6 +37,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
 
                     if(index > 5) return;
 
+                    notification.destroy()
                     notification.error({
                         message: error,
                         placement: 'topRight',
@@ -59,6 +61,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
         beforeUpload: (file) => {
             const isCsv = file.type === 'text/csv';
             if (!isCsv) {
+                notification.destroy()
                 notification.error({
                     message: `${file.name} is not a CSV file. Please upload a valid CSV.`,
                     placement: 'topRight',
@@ -79,6 +82,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
         reader.onload = (e) => {
             const csvData = e.target?.result as string;
             setValidating(true);
+            notification.destroy()
             notification.info({
                 message: 'Validating... please wait...',
                 placement: 'topRight',
@@ -97,6 +101,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
         uploadAPI(file)
             .then(() => {
                 setFile(null);
+                notification.destroy()
                 notification.warning({
                     message: 'File is being processed...',
                     placement: 'topRight',
@@ -106,6 +111,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
             .catch(() => {
                 setFile(null);
                 console.error('upload failed.');
+                notification.destroy()
                 notification.error({
                     message: 'Filed to upload',
                     placement: 'topRight',
@@ -121,6 +127,7 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
         if (file as any) {
             validateCSVFile(file as any);
         } else {
+            notification.destroy()
             notification.error({
                 message: 'Something went wrong',
                 placement: 'topRight',

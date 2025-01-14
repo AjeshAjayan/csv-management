@@ -25,6 +25,7 @@ export const SignUpPage = () => {
             values.firstName ?? '', 
             values.lastName ?? ''
         ).then(() => {
+            notification.destroy()
             notification.success({
                 message: `Successfully signed`,
                 description: 'Enter credentials to login',
@@ -32,6 +33,7 @@ export const SignUpPage = () => {
             });
             navigate('/login');
         }).catch((err) => {
+            notification.destroy()
             notification.error({
                 message: `Error`,
                 description: err.message,

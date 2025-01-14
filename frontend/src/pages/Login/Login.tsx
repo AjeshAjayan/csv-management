@@ -19,6 +19,7 @@ export const LoginPage = () => {
         setIsLoading(true);
         loginAPI(values.email ?? '', values.password ?? '').then(() => {
             navigate('/home');
+            notification.destroy()
             notification.success({
                 message: `Successfully logged in`,
                 description: '',
@@ -28,6 +29,7 @@ export const LoginPage = () => {
             if (err.statusCode === 404) {
                 setSignUpConfirmation(true);
             } else {
+                notification.destroy()
                 notification.error({
                     message: `Error`,
                     description: err.message,

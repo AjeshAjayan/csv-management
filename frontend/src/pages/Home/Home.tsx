@@ -20,6 +20,7 @@ export const HomePage = () => {
             setTotalProducts(res.data.totalProducts);
             setTotalPrice(res.data.totalPrice);
         }).catch(() => {
+            notification.destroy()
             notification.error({
                 message: `Error fetching dashboard insight`,
                 placement: 'topRight',

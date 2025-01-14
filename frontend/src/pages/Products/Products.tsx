@@ -69,11 +69,13 @@ export const ProductsPage = () => {
         clearIntervalRef.current = setInterval(() => {
             getUploadStatusAPI().then((status) => {
                 if (status.data.parsingInProgress) {
+                    notification.destroy()
                     notification.warning({
                         message: `Products are still being uploaded`,
                         placement: 'topRight',
                     });
                 } else if (status.data.uploadStatus === 'failed') {
+                    notification.destroy()
                     notification.error({
                         message: `Last uploading attempt was a failure, please try again`,
                         placement: 'topRight',
@@ -81,6 +83,7 @@ export const ProductsPage = () => {
                     clearInterval(clearIntervalRef.current);
                     clearIntervalRef.current = null;
                 } else if (status.data.uploadStatus === 'completed') {
+                    notification.destroy()
                     notification.success({
                         message: `Products uploaded successfully`,
                         placement: 'topRight',
@@ -135,7 +138,6 @@ export const ProductsPage = () => {
     }
 
     const handleAfterUploadingFinished = () => {
-        fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
         if (clearIntervalRef.current === null) {
             startPolling();
         }
