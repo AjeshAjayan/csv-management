@@ -4,7 +4,7 @@ import { connectToDatabase } from "../utils/connectToDb.js";
 import { Products } from "../models/Products.js";
 import csvParser from 'csv-parser';
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 10000;
 
 (async () => {
 
@@ -35,7 +35,7 @@ const BATCH_SIZE = 1000;
             },
             { upsert: true, new: true }
         );
-        
+
         process.stdin.pipe(csvParser()).on('data', async (row) => {
             try {
 
@@ -44,7 +44,7 @@ const BATCH_SIZE = 1000;
                  * So that it can be fetched efficiently. especially when product collection
                  * have millions of records 
                  */
-                
+
                 // Add to batch
                 if (row.productName && row.SKU && row.price && row.description) {
                     rows.push({
@@ -58,7 +58,7 @@ const BATCH_SIZE = 1000;
                     totalPrice += parseFloat(row.price) || 0;
                 }
 
-                if(rowCount % BATCH_SIZE === 0) {
+                if (rowCount % BATCH_SIZE === 0) {
                     // batch insertion
                     await Products.insertMany(rows, { session });
                     rows = [];
@@ -76,9 +76,7 @@ const BATCH_SIZE = 1000;
                 await session.abortTransaction();
                 process.exit(1);
             }
-        });
-
-        process.stdin.on('end', async () => {
+        }).on('end', async () => {
             try {
                 if (rows.length > 0) {
                     // batch insertion
@@ -118,7 +116,7 @@ const BATCH_SIZE = 1000;
                 mongoose.disconnect();
                 console.log("Transaction committed.");
             }
-        });
+        })
     } catch (err) {
         console.error("Error initializing worker:", err.message);
         await ProductMetrics.findOneAndUpdate(
