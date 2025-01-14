@@ -5,7 +5,7 @@ import { Products } from "../models/Products.js";
 import csvParser from 'csv-parser';
 
 const BATCH_SIZE = 10000;
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
 (async () => {
 
