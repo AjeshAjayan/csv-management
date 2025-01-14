@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Papa from "papaparse";
 import { ProductMetrics } from "../models/ProductsMetrices.js";
 import { connectToDatabase } from "../utils/connectToDb.js";
 import { Products } from "../models/Products.js";
@@ -22,7 +21,8 @@ const BATCH_SIZE = 1000;
         await session.startTransaction();
 
         let totalPrice = 0;
-        const rows = [];
+        let rowCount = 0;
+        let rows = [];
         /**
          * processing of CSV file is handled as a background task
          * so, keep status in a document, and is not part of the transaction
@@ -44,8 +44,7 @@ const BATCH_SIZE = 1000;
                  * So that it can be fetched efficiently. especially when product collection
                  * have millions of records 
                  */
-                totalPrice += parseFloat(row.price) || 0;
-
+                
                 // Add to batch
                 if (row.productName && row.SKU && row.price && row.description) {
                     rows.push({
@@ -54,6 +53,15 @@ const BATCH_SIZE = 1000;
                         price: parseFloat(row.price),
                         description: row.description,
                     });
+
+                    rowCount++;
+                    totalPrice += parseFloat(row.price) || 0;
+                }
+
+                if(rowCount % BATCH_SIZE === 0) {
+                    // batch insertion
+                    await Products.insertMany(rows, { session });
+                    rows = [];
                 }
             } catch (err) {
                 console.error("Error processing row:", err.message);
@@ -82,7 +90,7 @@ const BATCH_SIZE = 1000;
                     { _id: "root" },
                     {
                         $inc: {
-                            totalNumberOfProducts: rows.length,
+                            totalNumberOfProducts: rowCount,
                             totalWorthOfProduct: totalPrice
                         },
                         parsingInProgress: false,
