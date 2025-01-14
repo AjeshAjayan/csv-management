@@ -54,24 +54,26 @@ export const HomePage = () => {
                                 </Flex>
                             </Card>
                         </Flex>
-                        <Flex vertical>
-                            <Title level={4}>Last add 5</Title>
-                            <Flex gap={20} wrap>
-                                {
-                                    last5.map(product => (
-                                        <Card key={product._id} title={product.productName} bordered={false} style={{ width: 300 }}>
-                                            <div>
-                                                <label>SKU: {product.SKU}</label>
-                                            </div>
-                                            <div>
-                                                <label>Price: {product.price}</label>
-                                            </div>
-                                            <p style={{ margin: 0 }}>{product.description}</p>
-                                        </Card>
-                                    ))
-                                }
+                        {
+                            last5.length > 0 && <Flex vertical>
+                                <Title level={4}>Last add 5</Title>
+                                <Flex gap={20} wrap>
+                                    {
+                                        last5.map(product => (
+                                            <Card key={product._id} title={product.productName} bordered={false} style={{ width: 300 }}>
+                                                <div>
+                                                    <label>SKU: {product.SKU}</label>
+                                                </div>
+                                                <div>
+                                                    <label>Price: {product.price}</label>
+                                                </div>
+                                                <p style={{ margin: 0 }}>{product.description}</p>
+                                            </Card>
+                                        ))
+                                    }
+                                </Flex>
                             </Flex>
-                        </Flex>
+                        }
                     </>
             }
         </Flex>

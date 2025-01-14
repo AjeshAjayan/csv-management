@@ -1,4 +1,4 @@
-import { Card, Dropdown, Flex, Input, MenuProps, Pagination, Space, Spin, notification } from "antd"
+import { Card, Dropdown, Empty, Flex, Input, MenuProps, Pagination, Space, Spin, notification } from "antd"
 import { DownOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from "react";
 import { ImportCSV } from "./features/ImportCSV";
@@ -136,7 +136,7 @@ export const ProductsPage = () => {
 
     const handleAfterUploadingFinished = () => {
         fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
-        if(clearIntervalRef.current === null) {
+        if (clearIntervalRef.current === null) {
             startPolling();
         }
     }
@@ -172,21 +172,28 @@ export const ProductsPage = () => {
                     ? <Flex justify="">
                         <Spin />
                     </Flex>
-                    : <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
+                    : <>
                         {
-                            productsRes.products.map(product => (
-                                <Card key={product._id} title={product.productName} bordered={false} style={{ width: 300 }}>
-                                    <div>
-                                        <label>SKU: {product.SKU}</label>
-                                    </div>
-                                    <div>
-                                        <label>Price: {product.price}</label>
-                                    </div>
-                                    <p style={{ margin: 0 }}>{product.description}</p>
-                                </Card>
-                            ))
+                            productsRes.products.length > 0
+                                ?
+                                <Flex style={{ paddingLeft: '8rem' }} gap={20} wrap>
+                                    {
+                                        productsRes.products.map(product => (
+                                            <Card key={product._id} title={product.productName} bordered={false} style={{ width: 300 }}>
+                                                <div>
+                                                    <label>SKU: {product.SKU}</label>
+                                                </div>
+                                                <div>
+                                                    <label>Price: {product.price}</label>
+                                                </div>
+                                                <p style={{ margin: 0 }}>{product.description}</p>
+                                            </Card>
+                                        ))
+                                    }
+                                </Flex> : <Empty />
                         }
-                    </Flex>
+                    </>
+
             }
             <Pagination defaultCurrent={1}
                 total={productsRes.total}

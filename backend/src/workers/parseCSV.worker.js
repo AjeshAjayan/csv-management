@@ -3,25 +3,26 @@ import Papa from "papaparse";
 import { ProductMetrics } from "../models/ProductsMetrices.js";
 import { connectToDatabase } from "../utils/connectToDb.js";
 import { Products } from "../models/Products.js";
+import csvParser from 'csv-parser';
 
 const BATCH_SIZE = 1000;
 
 (async () => {
+
     try {
+
         await connectToDatabase();
         /**
          * insertMany is used to insert the products. Total product is split into
          * {BATCH_SIZE} and each batch is inserted separately
          * 
          * Transaction used used to handle rollback of any batch fails
-         */
+        */
         const session = await mongoose.startSession();
         await session.startTransaction();
 
-        let rowCount = 0;
         let totalPrice = 0;
-        let rows = [];
-
+        const rows = [];
         /**
          * processing of CSV file is handled as a background task
          * so, keep status in a document, and is not part of the transaction
@@ -34,116 +35,81 @@ const BATCH_SIZE = 1000;
             },
             { upsert: true, new: true }
         );
+        
+        process.stdin.pipe(csvParser()).on('data', async (row) => {
+            try {
 
+                /**
+                 * total number of rows and total worth of product is kept separately.
+                 * So that it can be fetched efficiently. especially when product collection
+                 * have millions of records 
+                 */
+                totalPrice += parseFloat(row.price) || 0;
 
-        process.stdin.on("data", (chunk) => {
-            Papa.parse(chunk.toString(), {
-                header: true,
-                skipEmptyLines: true,
-                step: async (row) => {
-                    try {
+                // Add to batch
+                if (row.productName && row.SKU && row.price && row.description) {
+                    rows.push({
+                        productName: row.productName,
+                        SKU: row.SKU,
+                        price: parseFloat(row.price),
+                        description: row.description,
+                    });
+                }
+            } catch (err) {
+                console.error("Error processing row:", err.message);
+                await ProductMetrics.findOneAndUpdate(
+                    { _id: "root" },
+                    {
+                        parsingInProgress: false,
+                        uploadStatus: 'failed',
+                    },
+                    { upsert: true, new: true }
+                );
+                await session.abortTransaction();
+                process.exit(1);
+            }
+        });
 
-                        /**
-                         * validate, if any data is missing
-                         * 
-                         * validate is done in FE as well
-                         */
-                        const data = row.data;
-                        if (!data.productName || !data.SKU || !data.price || !data.description) {
-                            throw new Error(`Missing required fields at row ${rowCount}`);
-                        }
+        process.stdin.on('end', async () => {
+            try {
+                if (rows.length > 0) {
+                    // batch insertion
+                    await Products.insertMany(rows, { session });
+                }
 
-                        /**
-                         * total number of rows and total worth of product is kept separately.
-                         * So that it can be fetched efficiently. especially when product collection
-                         * have millions of records 
-                         */
-                        rowCount++;
-                        totalPrice += parseFloat(data.price) || 0;
-
-                        // Add to batch
-                        rows.push({
-                            productName: data.productName,
-                            SKU: data.SKU,
-                            price: parseFloat(data.price),
-                            description: data.description,
-                        });
-
-                        // batch insertion
-                        if (rows.length >= BATCH_SIZE) {
-                            await Products.insertMany(rows, { session });
-                            rows = [];
-                        }
-                    } catch (err) {
-                        console.error("Error processing row:", err.message);
-                        await ProductMetrics.findOneAndUpdate(
-                            { _id: "root" },
-                            {
-                                parsingInProgress: false,
-                                uploadStatus: 'failed',
-                            },
-                            { upsert: true, new: true }
-                        );
-                        await session.abortTransaction();
-                        process.exit(1);
-                    }
-                },
-                complete: async () => {
-                    try {
-                        // Insert remaining rows in batch
-                        if (rows.length > 0) {
-                            await Products.insertMany(rows, { session });
-                        }
-
-                        // insert total number of rows and total worth of product;
-                        const res = await ProductMetrics.findOneAndUpdate(
-                            { _id: "root" },
-                            {
-                                $inc: { 
-                                    totalNumberOfProducts: rowCount,
-                                    totalWorthOfProduct: totalPrice
-                                },
-                                parsingInProgress: false,
-                                uploadStatus: 'completed',
-                            },
-                            { upsert: true, session, new: true }
-                        );
-                        console.log("Total rows inserted:", res.totalNumberOfProducts);
-
-                        await session.commitTransaction();
-                        console.log("Transaction committed.");
-                    } catch (err) {
-                        console.error("Error during final processing:", err.message);
-                        await ProductMetrics.findOneAndUpdate(
-                            { _id: "root" },
-                            {
-                                parsingInProgress: false,
-                                uploadStatus: 'failed',
-                            },
-                            { upsert: true, new: true }
-                        );
-                        await session.abortTransaction();
-                        process.exit(1);
-                    } finally {
-                        session.endSession();
-                        mongoose.disconnect();
-                        process.exit(0);
-                    }
-                },
-                error: async (err) => {
-                    console.error("Parsing error:", err.message);
-                    await ProductMetrics.findOneAndUpdate(
-                        { _id: "root" },
-                        {
-                            parsingInProgress: false,
-                            uploadStatus: 'failed',
+                // insert total number of rows and total worth of product;
+                const res = await ProductMetrics.findOneAndUpdate(
+                    { _id: "root" },
+                    {
+                        $inc: {
+                            totalNumberOfProducts: rows.length,
+                            totalWorthOfProduct: totalPrice
                         },
-                        { upsert: true, session, new: true }
-                    );
-                    await session.abortTransaction();
-                    process.exit(1);
-                },
-            });
+                        parsingInProgress: false,
+                        uploadStatus: 'completed',
+                    },
+                    { upsert: true, session, new: true }
+                );
+                console.log("Total rows inserted:", res.totalNumberOfProducts);
+
+            } catch (err) {
+                console.error("Error during final processing:", err.message);
+                await ProductMetrics.findOneAndUpdate(
+                    { _id: "root" },
+                    {
+                        parsingInProgress: false,
+                        uploadStatus: 'failed',
+                    },
+                    { upsert: true, new: true }
+                );
+                await session.abortTransaction();
+                process.exit(1);
+            } finally {
+                await session.commitTransaction();
+                session.endSession();
+                mongoose.disconnect();
+                console.log("Transaction committed.");
+            }
         });
     } catch (err) {
         console.error("Error initializing worker:", err.message);
@@ -153,7 +119,7 @@ const BATCH_SIZE = 1000;
                 parsingInProgress: false,
                 uploadStatus: 'failed',
             },
-            { upsert: true, session, new: true }
+            { upsert: true, new: true }
         );
         process.exit(1);
     }
