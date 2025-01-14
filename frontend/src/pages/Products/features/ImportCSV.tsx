@@ -1,9 +1,7 @@
-import { UploadFile, UploadProps, notification, Upload, Button, GetProp, Modal } from "antd";
+import { UploadFile, UploadProps, notification, Upload, Button, Modal } from "antd";
 import { useMemo, useState } from "react";
 import { UploadOutlined } from '@ant-design/icons';
 import { uploadAPI } from "../../../api/uploadAPI";
-
-type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
 type ImportCSVProps = {
     afterUploadingFinished: () => void
@@ -59,6 +57,16 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
             setFile(null);
         },
         beforeUpload: (file) => {
+            const fileSize = file.size / 1024 / 1024;
+
+            if(fileSize > 20) {
+                notification.destroy()
+                notification.error({
+                    message: `${file.name} is too large. Please upload a file less than 20MB.`,
+                    placement: 'topRight',
+                });
+                return false;
+            }
             const isCsv = file.type === 'text/csv';
             if (!isCsv) {
                 notification.destroy()

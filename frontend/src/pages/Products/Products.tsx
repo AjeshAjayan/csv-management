@@ -93,7 +93,17 @@ export const ProductsPage = () => {
                     fetchProducts({ limitArg: null, pageArg: null, sortArg: null, searchArg: null });
                     clearInterval(clearIntervalRef.current);
                     clearIntervalRef.current = null;
-                } else {
+                } else if (status.data.uploadStatus === 'size_too_large') {
+                    notification.destroy()
+                    notification.error({
+                        message: `Last attempt: CSV file size is too large. Please upload a file less than 20MB.`,
+                        placement: 'topRight',
+                    })
+                    clearInterval(clearIntervalRef.current);
+                    clearIntervalRef.current = null;
+                } else if (status.data.uploadStatus === 'invalid_csv') {
+                }
+                else {
                     clearInterval(clearIntervalRef.current);
                     clearIntervalRef.current = null;
                 }
