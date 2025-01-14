@@ -92,12 +92,9 @@ export const ImportCSV = ({ afterUploadingFinished }: ImportCSVProps) => {
     };
 
     const handleUpload = () => {
-        const formData = new FormData();
-
-        formData.append('file', file as FileType);
         setUploading(true);
 
-        uploadAPI(formData)
+        uploadAPI(file)
             .then(() => {
                 setFile(null);
                 notification.warning({

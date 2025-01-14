@@ -6,9 +6,13 @@ import { Products } from "../models/Products.js";
 
 const BATCH_SIZE = 1000;
 
+console.log("================================", 1);
+
 (async () => {
     try {
         await connectToDatabase();
+console.log("================================", 2);
+
 
         /**
          * insertMany is used to insert the products. Total product is split into
@@ -38,7 +42,6 @@ const BATCH_SIZE = 1000;
 
 
         process.stdin.on("data", (chunk) => {
-            console.log('chunk', chunk);
             Papa.parse(chunk.toString(), {
                 header: true,
                 skipEmptyLines: true,

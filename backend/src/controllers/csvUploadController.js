@@ -27,13 +27,8 @@ export const csvUploadController = (req, res) => {
         worker.stderr.on('data', (data) => {
             console.error(`Worker stderr: ${data}`);
         });
-
-        const readable = new Readable();
-        readable.push(req.file.buffer);
-        readable.push(null);
-
-        readable.pipe(worker.stdin);
-        // req.pipe(worker.stdin);
+        
+        req.pipe(worker.stdin);
 
         res.status(200).send(
             generateResponseFormat(
