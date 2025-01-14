@@ -69,4 +69,9 @@ note: wait for 3-4 minitues for all the serives to be up and running.
 * File Validation: Ensures only CSV files are uploaded. Non-CSV files are rejected to maintain data integrity and ensure correct processing.
 * Email and Password Validation: Enforces proper validation for email and password inputs to meet security and format standards for user authentication.
 
+## What could have done better?
+* Compressing and decompressing the CSV files for faster uploading.
+* Implement job queue to handle CSV files processing. 
+* Make use of job queues to implement retrying the processing of CSV files, on failure.
+
 
