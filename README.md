@@ -73,6 +73,6 @@ note: wait for 3-4 minitues for all the serives to be up and running.
 * Compressing and decompressing the CSV files for faster uploading.
 * Implement job queue to handle CSV files processing. 
 * Make use of job queues to implement retrying the processing of CSV files, on failure.
-* Use SSE to notify the client system that uploaded file is processed successfully. Polling is used at the moment.
+* Use SSE to notify the client system that uploaded file is processed. Polling is used at the moment.
 
 
