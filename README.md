@@ -74,5 +74,5 @@ note: wait for 3-4 minitues for all the serives to be up and running.
 * Implement job queue to handle CSV files processing. 
 * Make use of job queues to implement retrying the processing of CSV files, on failure.
 * Use SSE to notify the client system that uploaded file is processed. Polling is used at the moment.
-* Could have used Container presentation pattern
+* Could have used Container presentation pattern in FE
 
