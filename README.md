@@ -11,11 +11,6 @@ cd to root directory
   docker compose down -v
   docker compose up --build
 ```
-### Frontend
-The frontend will be running at [localhost:80](http://localhost).
-### Backend
-The backend will be running at [localhost:3000](http://localhost:3000)
-note: wait for 3-4 minutes for all the services to be up and running.
 
 ## Installing using yarn
 ```bash
@@ -25,9 +20,12 @@ note: wait for 3-4 minutes for all the services to be up and running.
   cd frontend
   yarn && yarn dev
 ```
+### Frontend
+The frontend will be running at [localhost:80](http://localhost).
+### Backend
+The backend will be running at [localhost:3000](http://localhost:3000)
+note: wait for 3-4 minutes for all the services to be up and running.
 
-
-    
 ## Environment Variables
 
 .env file are already included in the repo for the sake of simplicity
