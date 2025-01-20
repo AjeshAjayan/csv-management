@@ -11,7 +11,12 @@ cd to root directory
   docker compose down -v
   docker compose up --build
 ```
-note: wait for 3-4 minitues for all the serives to be up and running.
+### Frontend
+The frontend will be running at [localhost:80](http://localhost).
+### Backend
+The backend will be running at [localhost:3000](http://localhost:3000)
+note: wait for 3-4 minutes for all the services to be up and running.
+
 ## Installing using yarn
 ```bash
   cd backend
