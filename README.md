@@ -24,7 +24,7 @@ cd to root directory
 The frontend will be running at [localhost:80](http://localhost).
 ### Backend
 The backend will be running at [localhost:3000](http://localhost:3000)
-note: wait for 3-4 minutes for all the services to be up and running.
+#### note: wait for 3-4 minutes for all the services to be up and running.
 
 ## Environment Variables
 
